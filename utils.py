@@ -81,6 +81,20 @@ def get_user(tg_id):
         return None
 
 
+def remove_category(cat_id: int):
+    connection = establish_db_connection()
+    cursor = connection.cursor()
+    cursor.execute(f"delete from categories where id={cat_id}")
+    connection.commit()
+
+
+def add_category(name):
+    connection = establish_db_connection()
+    cursor = connection.cursor()
+    cursor.execute(f"insert into categories (category) values (\"{name}\")")
+    connection.commit()
+
+
 def add_new_ticket(user_id):
     pass
 
@@ -90,6 +104,7 @@ class UserStatus(Enum):
     email = 2
     grade = 3
     fill_compl = 4
+    adding_cat = 5
 
 
 

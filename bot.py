@@ -49,6 +49,28 @@ def process_add_admin_command(message: telebot.types.Message):
         bot.send_message(message.chat.id, "Недостаточно прав")
 
 
+@bot.message_handler(commands=['removecategory'])
+def process_remove_category_command(message: telebot.types.Message):
+    if validate_admin(message.from_user.id):
+        categories = get_categories()
+        categories_markup = telebot.types.InlineKeyboardMarkup()
+        for category in categories:
+            categories_markup.add(telebot.types.InlineKeyboardButton(text=f"{category[0]}. {category[1]}",
+                                                                     callback_data=f"remove {category[0]}"))
+        bot.send_message(message.chat.id, "Выберите категорию для удаления", reply_markup=categories_markup)
+    else:
+        bot.send_message(message.chat.id, "Недостаточно прав")
+
+
+@bot.message_handler(commands=['addcategory'])
+def process_add_category_command(message: telebot.types.Message):
+    if validate_admin(message.from_user.id):
+        context[message.from_user.id] = UserStatus.adding_cat
+        bot.send_message(message.chat.id, "Введите название категории")
+    else:
+        bot.send_message(message.chat.id, "Недостаточно прав")
+
+
 @bot.message_handler(commands=['faq'])
 def process_faq_command(message: telebot.types.Message):
     categories = get_categories()
@@ -68,14 +90,14 @@ def callback_handler(call: telebot.types.CallbackQuery):
             for q in questions:
                 reply += f"{q[0]}. {q[1]}\n {q[2]}\n\n"
             bot.send_message(call.message.chat.id, reply)
-        if call.data.split()[0] == "user_info":
+        elif call.data.split()[0] == "user_info":
             if call.data.split()[1] == "decline":
                 bot.send_message(call.message.chat.id, "Вы в любое время можете заполнить или изменить анкету. "
                                                        "Для этого используйте команду /info")
             elif call.data.split()[1] == "accept":
                 context[call.from_user.id] = UserStatus.name
                 fill_user_info(call.from_user.id)
-        if call.data.split()[0] == "skip":
+        elif call.data.split()[0] == "skip":
             if call.data.split()[1] == "name" and context.get(call.message.chat.id) == UserStatus.name:
                 context.pop(call.message.chat.id)
                 context[call.message.chat.id] = UserStatus.email
@@ -88,6 +110,11 @@ def callback_handler(call: telebot.types.CallbackQuery):
                 context.pop(call.message.chat.id)
                 context[call.message.chat.id] = UserStatus.fill_compl
                 fill_user_info(call.message.chat.id)
+        elif call.data.split()[0] == "remove":
+            cat_id = int(call.data.split()[1])
+            remove_category(cat_id)
+            bot.send_message(call.message.chat.id, "Категория успешно удалена")
+
 
 
 def fill_user_info(user):
@@ -112,29 +139,39 @@ def fill_user_info(user):
 
 @bot.message_handler(func=lambda message: True)
 def process_message(message: telebot.types.Message):
-    if not context.get(message.chat.id) is None:
-        user, name, email, grade = get_user(message.chat.id)
-        if context.get(message.chat.id) == UserStatus.name:
+    if not context.get(message.from_user.id) is None:
+        if context.get(message.from_user.id) == UserStatus.name:
+            user, name, email, grade = get_user(message.from_user.id)
             name = message.text
             add_or_update_user(user, name, email, grade)
             context.pop(user)
             context[user] = UserStatus.email
             fill_user_info(user)
-        elif context.get(message.chat.id) == UserStatus.email:
+        elif context.get(message.from_user.id) == UserStatus.email:
+            user, name, email, grade = get_user(message.from_user.id)
             email = message.text
             add_or_update_user(user, name, email, grade)
             context.pop(user)
             context[user] = UserStatus.grade
             fill_user_info(user)
-        elif context.get(message.chat.id) == UserStatus.grade:
+        elif context.get(message.from_user.id) == UserStatus.grade:
+            user, name, email, grade = get_user(message.from_user.id)
             grade = message.text
             add_or_update_user(user, name, email, grade)
             context.pop(user)
             context[user] = UserStatus.fill_compl
             fill_user_info(user)
+        elif context.get(message.from_user.id) == UserStatus.adding_cat:
+            add_category(message.text)
+            context.pop(message.from_user.id)
+            bot.send_message(message.from_user.id, f"Категория успешно добавлена")
 
     if message.chat.type == "private" and message.text.find("?") > 0 and not validate_admin(message.chat.id):
         process_new_ticket(message)
+
+
+
+
 
 
 def process_new_ticket(message: telebot.types.Message):

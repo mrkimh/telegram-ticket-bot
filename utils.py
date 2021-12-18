@@ -95,6 +95,20 @@ def add_category(name):
     connection.commit()
 
 
+def remove_question(q_id):
+    connection = establish_db_connection()
+    cursor = connection.cursor()
+    cursor.execute(f"delete from questions where id={q_id}")
+    connection.commit()
+
+
+def add_question(cat_id, question, answer):
+    connection = establish_db_connection()
+    cursor = connection.cursor()
+    cursor.execute(f"insert into questions (category, question, answer) values ({cat_id}, \"{question}\", \"{answer}\")")
+    connection.commit()
+
+
 def add_new_ticket(user_id):
     pass
 
@@ -105,6 +119,7 @@ class UserStatus(Enum):
     grade = 3
     fill_compl = 4
     adding_cat = 5
+    adding_question = 6
 
 
 

@@ -71,6 +71,32 @@ def process_add_category_command(message: telebot.types.Message):
         bot.send_message(message.chat.id, "Недостаточно прав")
 
 
+@bot.message_handler(commands=['removequestion'])
+def process_remove_question_command(message: telebot.types.Message):
+    if validate_admin(message.from_user.id):
+        categories = get_categories()
+        categories_markup = telebot.types.InlineKeyboardMarkup()
+        for category in categories:
+            categories_markup.add(telebot.types.InlineKeyboardButton(text=f"{category[0]}. {category[1]}",
+                                                                     callback_data=f"rm_question_cat {category[0]}"))
+        bot.send_message(message.chat.id, "Выберите раздел:", reply_markup=categories_markup)
+    else:
+        bot.send_message(message.chat.id, "Недостаточно прав")
+
+
+@bot.message_handler(commands=['addquestion'])
+def process_add_question_command(message: telebot.types.Message):
+    if validate_admin(message.from_user.id):
+        categories = get_categories()
+        categories_markup = telebot.types.InlineKeyboardMarkup()
+        for category in categories:
+            categories_markup.add(telebot.types.InlineKeyboardButton(text=f"{category[0]}. {category[1]}",
+                                                                     callback_data=f"add_question_cat {category[0]}"))
+        bot.send_message(message.chat.id, "Выберите раздел:", reply_markup=categories_markup)
+    else:
+        bot.send_message(message.chat.id, "Недостаточно прав")
+
+
 @bot.message_handler(commands=['faq'])
 def process_faq_command(message: telebot.types.Message):
     categories = get_categories()
@@ -87,8 +113,10 @@ def callback_handler(call: telebot.types.CallbackQuery):
         if call.data.split()[0] == "faq":
             questions = get_questions(int(call.data.split()[1]))
             reply = ""
+            i = 1
             for q in questions:
-                reply += f"{q[0]}. {q[1]}\n {q[2]}\n\n"
+                reply += f"{i}. {q[1]}\n{q[2]}\n\n"
+                i += 1
             bot.send_message(call.message.chat.id, reply)
         elif call.data.split()[0] == "user_info":
             if call.data.split()[1] == "decline":
@@ -114,7 +142,16 @@ def callback_handler(call: telebot.types.CallbackQuery):
             cat_id = int(call.data.split()[1])
             remove_category(cat_id)
             bot.send_message(call.message.chat.id, "Категория успешно удалена")
-
+        elif call.data.split()[0] == "rm_question_cat":
+            questions = get_questions(int(call.data.split()[1]))
+            questions_markup = telebot.types.InlineKeyboardMarkup()
+            for q in questions:
+                questions_markup.add(telebot.types.InlineKeyboardButton(text=f"{q[0]}. {q[2]}",
+                                                                        callback_data=f"rm_question {q[0]}"))
+            bot.send_message(call.message.chat.id, "Выберите вопрос для удаления", reply_markup=questions_markup)
+        elif call.data.split()[0] == "rm_question":
+            remove_question(call.data.split()[1])
+            bot.send_message(call.message.chat.id, "Успешно удлено")
 
 
 def fill_user_info(user):
@@ -168,10 +205,6 @@ def process_message(message: telebot.types.Message):
 
     if message.chat.type == "private" and message.text.find("?") > 0 and not validate_admin(message.chat.id):
         process_new_ticket(message)
-
-
-
-
 
 
 def process_new_ticket(message: telebot.types.Message):

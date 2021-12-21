@@ -7,9 +7,9 @@ context = dict()
 
 
 @bot.message_handler(commands=['start', 'help', 'info'])
-def process_start_command(message):
+def process_start_command(message: telebot.types.Message):
     if not user_exists(message.chat.id):
-        add_or_update_user(message.chat.id)
+        add_or_update_user(message.chat.id, message.from_user.username)
     bot.send_message(message.chat.id, "hello")
     info_markup = telebot.types.InlineKeyboardMarkup()
     info_markup.add(telebot.types.InlineKeyboardButton(text="Заполнить анкету", callback_data="user_info accept"))
@@ -20,8 +20,7 @@ def process_start_command(message):
 
 @bot.message_handler(commands=['id'])
 def process_start_command(message: telebot.types.Message):
-    if message.chat.type == "private":
-        bot.send_message(message.chat.id, message.chat.id)
+    bot.send_message(message.chat.id, message.chat.id)
 
 
 @bot.message_handler(commands=['addfirstadmin'])
@@ -60,6 +59,28 @@ def process_remove_category_command(message: telebot.types.Message):
         bot.send_message(message.chat.id, "Выберите категорию для удаления", reply_markup=categories_markup)
     else:
         bot.send_message(message.chat.id, "Недостаточно прав")
+
+
+@bot.message_handler(commands=['tickets'])
+def get_all_active_tickets_command(message: telebot.types.Message):
+    if validate_admin(message.from_user.id):
+        tickets = get_active_tickets()
+        for ticket in tickets:
+            u_name = get_user(ticket[1])[4]
+            bot.send_message(message.chat.id, f"Ticket {ticket[0]}\nFrom user {ticket[1]} @{u_name}\nText: {ticket[2]}")
+    else:
+        bot.send_message(message.chat.id, "Недостаточно прав")
+
+
+@bot.message_handler(commands=['close'])
+def process_close_ticket_command(message: telebot.types.Message):
+    if validate_admin(message.from_user.id):
+        user_id = message.text.split()[1]
+        close_ticket(user_id)
+        bot.send_message(message.chat.id, "Ticket помечен как завершенный")
+    else:
+        close_ticket(message.from_user.id)
+        bot.send_message(message.chat.id, "У вас больше нет открытых запросов.")
 
 
 @bot.message_handler(commands=['addcategory'])
@@ -181,23 +202,23 @@ def fill_user_info(user):
 def process_message(message: telebot.types.Message):
     if not context.get(message.from_user.id) is None:
         if context.get(message.from_user.id) == UserStatus.name:
-            user, name, email, grade = get_user(message.from_user.id)
+            user, name, email, grade, username = get_user(message.from_user.id)
             name = message.text
-            add_or_update_user(user, name, email, grade)
+            add_or_update_user(user, username, name, email, grade)
             context.pop(user)
             context[user] = UserStatus.email
             fill_user_info(user)
         elif context.get(message.from_user.id) == UserStatus.email:
-            user, name, email, grade = get_user(message.from_user.id)
+            user, name, email, grade, username = get_user(message.from_user.id)
             email = message.text
-            add_or_update_user(user, name, email, grade)
+            add_or_update_user(user, username, name, email, grade)
             context.pop(user)
             context[user] = UserStatus.grade
             fill_user_info(user)
         elif context.get(message.from_user.id) == UserStatus.grade:
-            user, name, email, grade = get_user(message.from_user.id)
+            user, name, email, grade, username = get_user(message.from_user.id)
             grade = message.text
-            add_or_update_user(user, name, email, grade)
+            add_or_update_user(user, username, name, email, grade)
             context.pop(user)
             context[user] = UserStatus.fill_compl
             fill_user_info(user)
@@ -220,12 +241,15 @@ def process_message(message: telebot.types.Message):
                 add_question(cat_id, question, ans)
                 bot.send_message(message.chat.id, "Вопрос успешно добавлен!")
 
-    if message.chat.type == "private" and message.text.find("?") > 0 and not validate_admin(message.chat.id):
-        process_new_ticket(message)
-
-
-def process_new_ticket(message: telebot.types.Message):
-    pass
+    if message.chat.type == "private" and not validate_admin(message.chat.id):
+        if not has_active_ticket(message.from_user.id):
+            add_new_ticket(message.from_user.id, message.text)
+            bot.send_message(message.chat.id, "Запрос отправлен.")
+            bot.send_message(-1001412305003, f"New ticket from user {message.from_user.id} @{message.from_user.username}"
+                                             f"\nContent: {message.text}")
+        else:
+            bot.send_message(message.chat.id, "У вас есть незавершенный запрос. Если вы хотите отправить новый "
+                                              "запрос, завершите уже отратый при помощи команды /close.")
 
 
 bot.infinity_polling()

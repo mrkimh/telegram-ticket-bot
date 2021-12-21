@@ -62,7 +62,7 @@ def user_exists(tg_id: int):
     return len(result) > 0
 
 
-def add_or_update_user(tg_id, name=None, email=None, grade=None):
+def add_or_update_user(tg_id, tg_username, name=None, email=None, grade=None):
     if name is None:
         name = "NULL"
     if email is None:
@@ -71,7 +71,8 @@ def add_or_update_user(tg_id, name=None, email=None, grade=None):
         grade = "NULL"
     connection = establish_db_connection()
     cursor = connection.cursor()
-    cursor.execute(f"INSERT OR REPLACE into users (telegram_user_id, name, email, grade) values ({tg_id}, \"{name}\", \"{email}\", \"{grade}\")")
+    cursor.execute(
+        f"INSERT OR REPLACE into users (telegram_user_id, username, name, email, grade) values ({tg_id}, \"{tg_username}\", \"{name}\", \"{email}\", \"{grade}\")")
     connection.commit()
 
 
@@ -110,12 +111,46 @@ def remove_question(q_id):
 def add_question(cat_id, question, answer):
     connection = establish_db_connection()
     cursor = connection.cursor()
-    cursor.execute(f"insert into questions (category, question, answer) values ({cat_id}, \"{question}\", \"{answer}\")")
+    cursor.execute(
+        f"insert into questions (category, question, answer) values ({cat_id}, \"{question}\", \"{answer}\")")
     connection.commit()
 
 
-def add_new_ticket(user_id):
-    pass
+def get_active_tickets():
+    connection = establish_db_connection()
+    cursor = connection.cursor()
+    cursor.execute('select * from tickets where is_active=1')
+    res = cursor.fetchall()
+    return res
+
+
+def close_ticket(u_id):
+    connection = establish_db_connection()
+    cursor = connection.cursor()
+    cursor.execute(f"select * from tickets where user={u_id} and is_active=1")
+    cur_record = cursor.fetchone()
+    if cur_record is not None:
+        cursor.execute(
+            f'insert or replace into tickets values ({cur_record[0]}, \"{cur_record[1]}\",  \"{cur_record[2]}\", 0)')
+        connection.commit()
+
+
+def has_active_ticket(u_id):
+    connection = establish_db_connection()
+    cursor = connection.cursor()
+    cursor.execute(f"select * from tickets where user={u_id} and is_active=1")
+    res = cursor.fetchone()
+    if res is not None:
+        return True
+    else:
+        return False
+
+
+def add_new_ticket(user_id, text):
+    connection = establish_db_connection()
+    cursor = connection.cursor()
+    cursor.execute(f"insert into tickets (user, content) values ({user_id}, \"{text}\")")
+    connection.commit()
 
 
 class UserStatus(Enum):

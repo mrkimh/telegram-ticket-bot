@@ -13,6 +13,12 @@ def get_bot_token(var):
     return os.environ[var]
 
 
+def get_main_chat():
+    with open("./local_storage/main_chat.txt", "r") as file:
+        chat_id = file.read()
+    return int(chat_id)
+
+
 def establish_db_connection():
     connection = sqlite3.connect("./local_storage/db/telegram_bot.db")
     return connection

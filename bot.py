@@ -4,9 +4,10 @@ import logging
 
 bot = telebot.TeleBot(get_bot_token('TELEGRAM_BOT_TOKEN'))
 context = dict()
+main_chat_id = get_main_chat()
 
 
-@bot.message_handler(commands=['start', 'help', 'info'])
+bot.message_handler(commands=['start', 'help', 'info'])
 def process_start_command(message: telebot.types.Message):
     if not user_exists(message.chat.id):
         add_or_update_user(message.chat.id, message.from_user.username)
@@ -264,15 +265,20 @@ def process_message(message: telebot.types.Message):
                 add_question(cat_id, question, ans)
                 bot.send_message(message.chat.id, "Вопрос успешно добавлен!")
 
-    elif message.chat.type == "private" and not validate_admin(message.chat.id) and message.reply_to_message is None:
+    elif message.chat.type == "private" and not validate_admin(message.chat.id):
         if not has_active_ticket(message.from_user.id):
             ticket_id = add_new_ticket(message.from_user.id, message.text)
             bot.send_message(message.chat.id, "Запрос отправлен.")
-            bot.send_message(-662831831,
+            bot.send_message(main_chat_id,
                              f"New Ticket  ID {ticket_id}\nFrom user {message.from_user.id} @{message.from_user.username}"
                              f"\nContent: {message.text}")
         else:
-            bot.send_message(message.chat.id, "У вас есть незавершенный запрос. Если вы хотите отправить новый "
+            if message.reply_to_message is not None and validate_admin(message.reply_to_message.forward_from.id):
+                print(message.reply_to_message)
+                bot.forward_message(main_chat_id, message.chat.id, message.id)
+                bot.send_message(message.chat.id, "Отправлено")
+            else:
+                bot.send_message(message.chat.id, "У вас есть незавершенный запрос. Если вы хотите отправить новый "
                                               "запрос, завершите уже открытый при помощи команды /close.")
     elif validate_admin(message.from_user.id) and message.reply_to_message is not None \
             and message.chat.type != "private":

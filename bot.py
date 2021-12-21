@@ -40,8 +40,8 @@ def process_add_admin_command(message: telebot.types.Message):
         words = message.text.split()
         if len(words) == 2 and words[1].isnumeric():
             try:
-                if not validate_admin(message.from_user.id):
-                    add_new_admin(message.from_user.id)
+                if validate_admin(message.from_user.id):
+                    add_new_admin(int(words[1]))
                     bot.send_message(message.chat.id, "Админ успешно добавлен")
             except Exception as e:
                 bot.reply_to(message, "error")
@@ -71,7 +71,7 @@ def get_all_active_tickets_command(message: telebot.types.Message):
         tickets = get_active_tickets()
         for ticket in tickets:
             u_name = get_user(ticket[1])[4]
-            bot.send_message(message.chat.id, f"Ticket {ticket[0]}\nFrom user {ticket[1]} @{u_name}\nText: {ticket[2]}")
+            bot.send_message(message.chat.id, f"Ticket  ID {ticket[0]}\nFrom user {ticket[1]} @{u_name}\nText: {ticket[2]}")
     else:
         bot.send_message(message.chat.id, "Недостаточно прав")
 
@@ -84,7 +84,8 @@ def process_close_ticket_command(message: telebot.types.Message):
         bot.send_message(message.chat.id, "Ticket помечен как завершенный")
     else:
         close_ticket(message.from_user.id)
-        bot.send_message(message.chat.id, "У вас больше нет открытых запросов.")
+        if not has_active_ticket(message.from_user.id):
+            bot.send_message(message.chat.id, "У вас больше нет открытых запросов.")
 
 
 @bot.message_handler(commands=['addcategory'])
@@ -263,16 +264,22 @@ def process_message(message: telebot.types.Message):
                 add_question(cat_id, question, ans)
                 bot.send_message(message.chat.id, "Вопрос успешно добавлен!")
 
-    elif message.chat.type == "private" and not validate_admin(message.chat.id):
+    elif message.chat.type == "private" and not validate_admin(message.chat.id) and message.reply_to_message is None:
         if not has_active_ticket(message.from_user.id):
-            add_new_ticket(message.from_user.id, message.text)
+            ticket_id = add_new_ticket(message.from_user.id, message.text)
             bot.send_message(message.chat.id, "Запрос отправлен.")
-            bot.send_message(-1001412305003,
-                             f"New ticket from user {message.from_user.id} @{message.from_user.username}"
+            bot.send_message(-662831831,
+                             f"New Ticket  ID {ticket_id}\nFrom user {message.from_user.id} @{message.from_user.username}"
                              f"\nContent: {message.text}")
         else:
             bot.send_message(message.chat.id, "У вас есть незавершенный запрос. Если вы хотите отправить новый "
                                               "запрос, завершите уже открытый при помощи команды /close.")
+    elif validate_admin(message.from_user.id) and message.reply_to_message is not None \
+            and message.chat.type != "private":
+        if message.reply_to_message.text.find("Ticket  ID") >= 0:
+            ticket_id_to_reply = find_first_int(message.reply_to_message.text)
+            user = get_ticket_author(ticket_id_to_reply)
+            bot.forward_message(user, message.chat.id, message.id)
 
 
 bot.infinity_polling()

@@ -150,6 +150,29 @@ def add_new_ticket(user_id, text):
     cursor = connection.cursor()
     cursor.execute(f"insert into tickets (user, content) values ({user_id}, \"{text}\")")
     connection.commit()
+    cursor.execute(f"select id from tickets where user={user_id} and is_active=1")
+    ticket_id = cursor.fetchone()[0]
+    return ticket_id
+
+
+def find_first_int(s: str):
+    number = 0
+    started = False
+    for char in s:
+        if char.isdigit():
+            number = number * 10 + int(char)
+            started = True
+        elif started:
+            break
+    return number
+
+
+def get_ticket_author(ticket_id):
+    connection = establish_db_connection()
+    cursor = connection.cursor()
+    cursor.execute(f"select user from tickets where id={ticket_id}")
+    res = cursor.fetchone()[0]
+    return res
 
 
 class UserStatus(Enum):
@@ -159,3 +182,4 @@ class UserStatus(Enum):
     fill_compl = 4
     adding_cat = 5
     adding_question = 6
+

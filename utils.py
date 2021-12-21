@@ -13,6 +13,17 @@ def establish_db_connection():
     return connection
 
 
+def generate_db_structure():
+    connection = establish_db_connection()
+    cursor = connection.cursor()
+    with open("./db.sql", "r") as file:
+        init_script = file.read()
+        statements = init_script.split("\n\n")
+        for statement in statements:
+            cursor.execute(statement)
+    connection.commit()
+
+
 def add_new_admin(tg_id: int):
     connection = establish_db_connection()
     cursor = connection.cursor()
@@ -116,4 +127,4 @@ class UserStatus(Enum):
     adding_question = 6
 
 
-
+generate_db_structure()

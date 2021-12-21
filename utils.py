@@ -23,9 +23,7 @@ def generate_db_structure():
     cursor = connection.cursor()
     with open("./db.sql", "r") as file:
         init_script = file.read()
-        statements = init_script.split("\n\n")
-        for statement in statements:
-            cursor.execute(statement)
+        cursor.executescript(init_script)
     connection.commit()
 
 

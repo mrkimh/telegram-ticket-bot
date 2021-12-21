@@ -53,8 +53,10 @@ def process_remove_category_command(message: telebot.types.Message):
     if validate_admin(message.from_user.id):
         categories = get_categories()
         categories_markup = telebot.types.InlineKeyboardMarkup()
+        i = 0
         for category in categories:
-            categories_markup.add(telebot.types.InlineKeyboardButton(text=f"{category[0]}. {category[1]}",
+            i += 1
+            categories_markup.add(telebot.types.InlineKeyboardButton(text=f"{i}. {category[1]}",
                                                                      callback_data=f"remove {category[0]}"))
         bot.send_message(message.chat.id, "Выберите категорию для удаления", reply_markup=categories_markup)
     else:
@@ -97,8 +99,10 @@ def process_remove_question_command(message: telebot.types.Message):
     if validate_admin(message.from_user.id):
         categories = get_categories()
         categories_markup = telebot.types.InlineKeyboardMarkup()
+        i = 0
         for category in categories:
-            categories_markup.add(telebot.types.InlineKeyboardButton(text=f"{category[0]}. {category[1]}",
+            i += 1
+            categories_markup.add(telebot.types.InlineKeyboardButton(text=f"{i}. {category[1]}",
                                                                      callback_data=f"rm_question_cat {category[0]}"))
         bot.send_message(message.chat.id, "Выберите раздел:", reply_markup=categories_markup)
     else:
@@ -110,8 +114,10 @@ def process_add_question_command(message: telebot.types.Message):
     if validate_admin(message.from_user.id):
         categories = get_categories()
         categories_markup = telebot.types.InlineKeyboardMarkup()
+        i = 0
         for category in categories:
-            categories_markup.add(telebot.types.InlineKeyboardButton(text=f"{category[0]}. {category[1]}",
+            i += 1
+            categories_markup.add(telebot.types.InlineKeyboardButton(text=f"{i}. {category[1]}",
                                                                      callback_data=f"add_question {category[0]}"))
         bot.send_message(message.chat.id, "Выберите раздел:", reply_markup=categories_markup)
     else:
@@ -134,8 +140,10 @@ def process_add_question_command(message: telebot.types.Message):
 def process_faq_command(message: telebot.types.Message):
     categories = get_categories()
     categories_markup = telebot.types.InlineKeyboardMarkup()
+    i = 0
     for category in categories:
-        categories_markup.add(telebot.types.InlineKeyboardButton(text=f"{category[0]}. {category[1]}",
+        i += 1
+        categories_markup.add(telebot.types.InlineKeyboardButton(text=f"{i}. {category[1]}",
                                                                  callback_data=f"faq {category[0]}"))
     bot.send_message(message.chat.id, "Разделы:", reply_markup=categories_markup)
 
@@ -257,8 +265,9 @@ def process_message(message: telebot.types.Message):
         if not has_active_ticket(message.from_user.id):
             add_new_ticket(message.from_user.id, message.text)
             bot.send_message(message.chat.id, "Запрос отправлен.")
-            bot.send_message(-1001412305003, f"New ticket from user {message.from_user.id} @{message.from_user.username}"
-                                             f"\nContent: {message.text}")
+            bot.send_message(-1001412305003,
+                             f"New ticket from user {message.from_user.id} @{message.from_user.username}"
+                             f"\nContent: {message.text}")
         else:
             bot.send_message(message.chat.id, "У вас есть незавершенный запрос. Если вы хотите отправить новый "
                                               "запрос, завершите уже отратый при помощи команды /close.")

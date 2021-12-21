@@ -241,7 +241,7 @@ def process_message(message: telebot.types.Message):
                 add_question(cat_id, question, ans)
                 bot.send_message(message.chat.id, "Вопрос успешно добавлен!")
 
-    if message.chat.type == "private" and not validate_admin(message.chat.id):
+    elif message.chat.type == "private" and not validate_admin(message.chat.id):
         if not has_active_ticket(message.from_user.id):
             add_new_ticket(message.from_user.id, message.text)
             bot.send_message(message.chat.id, "Запрос отправлен.")

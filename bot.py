@@ -26,8 +26,9 @@ def process_start_command(message: telebot.types.Message):
 @bot.message_handler(commands=['addfirstadmin'])
 def process_afa_command(message: telebot.types.Message):
     try:
-        add_new_admin(message.chat.id)
-        bot.reply_to(message, "Вы успешно получили админ права")
+        if not validate_admin(message.from_user.id):
+            add_new_admin(message.from_user.id)
+            bot.reply_to(message, "Вы успешно получили админ права")
     except Exception as e:
         bot.reply_to(message, "error")
         print(e)
@@ -39,8 +40,9 @@ def process_add_admin_command(message: telebot.types.Message):
         words = message.text.split()
         if len(words) == 2 and words[1].isnumeric():
             try:
-                add_new_admin(int(words[1]))
-                bot.send_message(message.chat.id, "Админ успешно добавлен")
+                if not validate_admin(message.from_user.id):
+                    add_new_admin(message.from_user.id)
+                    bot.send_message(message.chat.id, "Админ успешно добавлен")
             except Exception as e:
                 bot.reply_to(message, "error")
                 print(e)

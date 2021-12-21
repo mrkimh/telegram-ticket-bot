@@ -9,11 +9,12 @@ CREATE TABLE IF NOT EXISTS users (
     telegram_user_id BIGINT PRIMARY KEY,
     name             STRING,
     email            STRING,
-    grade            STRING
+    grade            INT,
+    username         STRING NOT NULL
 );
 
 
-CREATE TABLE IF NOT EXISTS tickets (
+CREATE TABLE  tickets (
     id        INTEGER PRIMARY KEY AUTOINCREMENT,
     user      BIGINT  REFERENCES users (telegram_user_id) ON DELETE CASCADE
                                                           ON UPDATE CASCADE

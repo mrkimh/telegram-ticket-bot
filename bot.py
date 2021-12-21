@@ -118,6 +118,18 @@ def process_add_question_command(message: telebot.types.Message):
         bot.send_message(message.chat.id, "Недостаточно прав")
 
 
+@bot.message_handler(commands=['getinfo'])
+def process_add_question_command(message: telebot.types.Message):
+    if validate_admin(message.from_user.id):
+        user = get_user(message.text.split()[1])
+        if user is not None:
+            bot.send_message(message.chat.id, f"User: @{user[4]}\nName: {user[1]}\nEmail: {user[2]}\nGrade: {user[3]}")
+        else:
+            bot.send_message(message.chat.id, "Uses does not exist.")
+    else:
+        bot.send_message(message.chat.id, "Недостаточно прав")
+
+
 @bot.message_handler(commands=['faq'])
 def process_faq_command(message: telebot.types.Message):
     categories = get_categories()

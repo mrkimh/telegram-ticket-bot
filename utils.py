@@ -76,8 +76,7 @@ def add_or_update_user(tg_id, tg_username, name=None, email=None, grade=None):
         grade = "NULL"
     connection = establish_db_connection()
     cursor = connection.cursor()
-    cursor.execute(
-        f"INSERT OR REPLACE into users (telegram_user_id, username, name, email, grade) values ({tg_id}, \"{tg_username}\", \"{name}\", \"{email}\", \"{grade}\")")
+    cursor.execute(f"INSERT OR REPLACE into users (telegram_user_id, username, name, email, grade) values ({tg_id}, \"{tg_username}\", \"{name}\", \"{email}\", \"{grade}\")")
     connection.commit()
 
 
@@ -86,10 +85,7 @@ def get_user(tg_id):
     cursor = connection.cursor()
     cursor.execute(f"select * from users where telegram_user_id = {tg_id}")
     res = cursor.fetchone()
-    if len(res) > 0:
-        return res
-    else:
-        return None
+    return res
 
 
 def remove_category(cat_id: int):
@@ -165,4 +161,3 @@ class UserStatus(Enum):
     fill_compl = 4
     adding_cat = 5
     adding_question = 6
-

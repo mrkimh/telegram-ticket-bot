@@ -192,7 +192,7 @@ def callback_handler(call: telebot.types.CallbackQuery):
             bot.send_message(call.message.chat.id, "Выберите вопрос для удаления", reply_markup=questions_markup)
         elif call.data.split()[0] == "rm_question":
             remove_question(call.data.split()[1])
-            bot.send_message(call.message.chat.id, "Успешно удлено")
+            bot.send_message(call.message.chat.id, "Успешно удалено")
         elif call.data.split()[0] == "add_question":
             context[call.message.chat.id] = [UserStatus.adding_question, call.data.split()[1]]
             bot.send_message(call.message.chat.id, "Введите вопрос.")
@@ -270,7 +270,7 @@ def process_message(message: telebot.types.Message):
                              f"\nContent: {message.text}")
         else:
             bot.send_message(message.chat.id, "У вас есть незавершенный запрос. Если вы хотите отправить новый "
-                                              "запрос, завершите уже отратый при помощи команды /close.")
+                                              "запрос, завершите уже открытый при помощи команды /close.")
 
 
 bot.infinity_polling()

@@ -24,7 +24,7 @@ def process_start_command(message: telebot.types.Message):
         bot.send_message(message.chat.id, message.chat.id)
 
 
-@bot.message_handler(commands=[f'{add_first_admin_command()}'])
+@bot.message_handler(commands=['addfirstadmin'])
 def process_afa_command(message: telebot.types.Message):
     try:
         add_new_admin(message.chat.id)
@@ -91,7 +91,7 @@ def process_add_question_command(message: telebot.types.Message):
         categories_markup = telebot.types.InlineKeyboardMarkup()
         for category in categories:
             categories_markup.add(telebot.types.InlineKeyboardButton(text=f"{category[0]}. {category[1]}",
-                                                                     callback_data=f"add_question_cat {category[0]}"))
+                                                                     callback_data=f"add_question {category[0]}"))
         bot.send_message(message.chat.id, "Выберите раздел:", reply_markup=categories_markup)
     else:
         bot.send_message(message.chat.id, "Недостаточно прав")
@@ -152,6 +152,9 @@ def callback_handler(call: telebot.types.CallbackQuery):
         elif call.data.split()[0] == "rm_question":
             remove_question(call.data.split()[1])
             bot.send_message(call.message.chat.id, "Успешно удлено")
+        elif call.data.split()[0] == "add_question":
+            context[call.message.chat.id] = [UserStatus.adding_question, call.data.split()[1]]
+            bot.send_message(call.message.chat.id, "Введите вопрос.")
 
 
 def fill_user_info(user):
@@ -202,6 +205,20 @@ def process_message(message: telebot.types.Message):
             add_category(message.text)
             context.pop(message.from_user.id)
             bot.send_message(message.from_user.id, f"Категория успешно добавлена")
+        elif context.get(message.from_user.id).__class__ is list:
+            ls = context.get(message.from_user.id)
+            if len(ls) == 2:
+                context.pop(message.from_user.id)
+                ls.append(message.text)
+                context[message.chat.id] = ls
+                bot.send_message(message.chat.id, "Введите ответ на вопрос")
+            elif len(ls) == 3:
+                context.pop(message.from_user.id)
+                cat_id = ls[1]
+                question = ls[2]
+                ans = message.text
+                add_question(cat_id, question, ans)
+                bot.send_message(message.chat.id, "Вопрос успешно добавлен!")
 
     if message.chat.type == "private" and message.text.find("?") > 0 and not validate_admin(message.chat.id):
         process_new_ticket(message)

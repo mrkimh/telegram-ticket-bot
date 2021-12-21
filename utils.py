@@ -13,12 +13,6 @@ def establish_db_connection():
     return connection
 
 
-def add_first_admin_command():
-    with open("./local_storage/add_first_admin_command.txt", "r") as file:
-        command = file.read()
-    return command
-
-
 def add_new_admin(tg_id: int):
     connection = establish_db_connection()
     cursor = connection.cursor()

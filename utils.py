@@ -1,11 +1,16 @@
 import sqlite3
+import os
 from enum import Enum
 
 
-def load_token():
+def load_local_token():
     with open("./local_storage/token.txt", "r") as file:
         token = file.read()
     return token
+
+
+def get_bot_token(var):
+    return os.environ[var]
 
 
 def establish_db_connection():
@@ -161,5 +166,3 @@ class UserStatus(Enum):
     adding_cat = 5
     adding_question = 6
 
-
-generate_db_structure()

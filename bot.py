@@ -2,7 +2,7 @@ import telebot
 from utils import *
 import logging
 
-bot = telebot.TeleBot(load_token())
+bot = telebot.TeleBot(get_bot_token('TELEGRAM_BOT_TOKEN'))
 context = dict()
 
 

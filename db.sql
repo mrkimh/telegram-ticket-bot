@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 
-CREATE TABLE  tickets (
+CREATE TABLE IF NOT EXISTS tickets (
     id        INTEGER PRIMARY KEY AUTOINCREMENT,
     user      BIGINT  REFERENCES users (telegram_user_id) ON DELETE CASCADE
                                                           ON UPDATE CASCADE

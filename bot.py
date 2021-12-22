@@ -7,7 +7,7 @@ context = dict()
 main_chat_id = get_main_chat()
 
 
-bot.message_handler(commands=['start', 'help', 'info'])
+@bot.message_handler(commands=['start', 'help', 'info'])
 def process_start_command(message: telebot.types.Message):
     if not user_exists(message.chat.id):
         add_or_update_user(message.chat.id, message.from_user.username)
@@ -72,7 +72,8 @@ def get_all_active_tickets_command(message: telebot.types.Message):
         tickets = get_active_tickets()
         for ticket in tickets:
             u_name = get_user(ticket[1])[4]
-            bot.send_message(message.chat.id, f"Ticket  ID {ticket[0]}\nFrom user {ticket[1]} @{u_name}\nText: {ticket[2]}")
+            bot.send_message(message.chat.id,
+                             f"Ticket  ID {ticket[0]}\nFrom user {ticket[1]} @{u_name}\nText: {ticket[2]}")
     else:
         bot.send_message(message.chat.id, "Недостаточно прав")
 
@@ -279,7 +280,7 @@ def process_message(message: telebot.types.Message):
                 bot.send_message(message.chat.id, "Отправлено")
             else:
                 bot.send_message(message.chat.id, "У вас есть незавершенный запрос. Если вы хотите отправить новый "
-                                              "запрос, завершите уже открытый при помощи команды /close.")
+                                                  "запрос, завершите уже открытый при помощи команды /close.")
     elif validate_admin(message.from_user.id) and message.reply_to_message is not None \
             and message.chat.type != "private":
         if message.reply_to_message.text.find("Ticket  ID") >= 0:

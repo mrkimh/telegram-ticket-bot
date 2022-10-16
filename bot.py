@@ -2,7 +2,7 @@ import telebot
 from utils import *
 import logging
 
-bot = telebot.TeleBot(get_bot_token('TELEGRAM_BOT_TOKEN'))
+bot = telebot.TeleBot(get_bot_token('5711490877:AAHCU5uKeFXREXZrFCZlNsUX_5UVBBH1XTQ'))
 context = dict()
 main_chat_id = get_main_chat()
 
